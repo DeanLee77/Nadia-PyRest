@@ -1,6 +1,8 @@
+import json
+
 from project.loggers import Logger
-from project.nodes import Node
-from project.nodes import NodeSet
+from project.nodes.node import Node
+from project.nodes.node_set import NodeSet
 
 logging: Logger = Logger.get_logger(__name__)
 
@@ -22,11 +24,14 @@ class Assessment:
     # However, better way needs to be found.
     __aux_node_to_be_asked: Node
 
-    def __init__(self, node_set: NodeSet, goal_node_name: str):
+    def __init__(self, node_set: NodeSet = None, goal_node_name: str = None):
         self.__goal_node = node_set.get_node_dictionary()[goal_node_name]
         self.__goal_node_index = node_set.find_node_index(goal_node_name)
         self.__node_to_be_asked = None
         self.__aux_node_to_be_asked = None
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
     def set_assessment(self, node_set: NodeSet, goal_node_name: str):
         self.__goal_node = node_set.get_node_dictionary()[goal_node_name]

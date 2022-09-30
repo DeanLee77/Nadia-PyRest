@@ -1,13 +1,13 @@
 import json
 
-from project.inference import Assessment
+from project.inference.assessment import Assessment
 from project.inference import AssessmentState
 from project.inference import InferenceEngine
 from project.inference import TopologicalSort
 from project.loggers import Logger
-from project.nodes import Node
+from project.nodes.node import Node
 from project.tokens import Token
-from project.nodes import NodeSet
+from project.nodes.node_set import NodeSet
 from project.nodes import DependencyMatrix
 from project.nodes import LineType
 from project.nodes import ValueConclusionLine
@@ -29,6 +29,9 @@ class IterateLine(Node):
 
     def __init__(self, parent_text: str, tokens: Token):
         super().__init__(parent_text, tokens)
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
     def get_given_list_name(self) -> str:
         return self.__givenListName
@@ -196,7 +199,7 @@ class IterateLine(Node):
 
     # this method is used when a givenList exists as a string
     def iterate_feed_answers_with_json(self, given_json_string: [str or bytes], parent_node_set: NodeSet,
-                             parent_assessment_state: AssessmentState, assessment: Assessment) -> None:
+                                       parent_assessment_state: AssessmentState, assessment: Assessment) -> None:
 
         # givenJsonString has to be in same format as Example otherwise the engine would NOT be able to enable
         # --------------------------- "givenJsonString" Format ----------------------------
@@ -359,9 +362,11 @@ class IterateLine(Node):
             out_fact_value: FactValue = None
             number_of_determined_second_level_node = \
                 filter(lambda target_id:
-                       working_memory.get(self.__iterateIE.get_node_set().get_node_id_dictionary().get(target_id)) is not None \
+                       working_memory.get(
+                           self.__iterateIE.get_node_set().get_node_id_dictionary().get(target_id)) is not None \
                        and working_memory.get(
-                           self.__iterateIE.get_node_set().get_node_id_dictionary().get(target_id)).get_value() is not None,
+                           self.__iterateIE.get_node_set().get_node_id_dictionary().get(
+                               target_id)).get_value() is not None,
                        filter(lambda i: i is not self._nodeId + 1,
                               self.__iterateIE.get_node_set().get_dependency_matrix().get_to_child_dependency_list(
                                   self._nodeId)

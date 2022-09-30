@@ -1,5 +1,7 @@
+import json
+
 from project.loggers import Logger
-from project.nodes import Node
+from project.nodes.node import Node
 from project.tokens import Token
 from project.nodes.line_type import LineType
 from project.fact_values import FactValueType
@@ -8,6 +10,8 @@ from datetime import datetime
 
 logging: Logger = Logger.get_logger(__name__)
 
+def __repr__(self):
+    return json.dumps(self.__dict__)
 
 class ComparisonLine(Node):
     __operatorString = None

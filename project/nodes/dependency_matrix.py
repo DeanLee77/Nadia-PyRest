@@ -1,3 +1,5 @@
+import json
+
 from project.nodes.dependency_type import DependencyType
 
 
@@ -18,6 +20,9 @@ class DependencyMatrix:
 
     __dependencyTwoDimensionList: [[]] = None
     __dependencyListSize: int = None
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
     def __init__(self, dependency_two_dimension_list):
         self.__dependencyTwoDimensionList = dependency_two_dimension_list

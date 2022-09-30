@@ -1,8 +1,9 @@
+import json
 from datetime import datetime
 import re
 
 from project.loggers import Logger
-from project.nodes import Node
+from project.nodes.node import Node
 from project.nodes.line_type import LineType
 from project.fact_values import FactValue
 from project.fact_values import FactValueType
@@ -13,13 +14,15 @@ logging: Logger = Logger.get_logger(__name__)
 
 
 class ExprConclusionLine(Node):
-
     __equation: FactValue = None
 
     __dateFormatter = '%Y-%m-%d'
 
     def __init__(self, parent_text: str, tokens: Token):
         super().__init__(parent_text, tokens)
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
     def initialisation(self, parent_text: str, tokens: Token):
         logging.info("Generating Expression Conclusion Line with : " + str(parent_text))
@@ -92,7 +95,7 @@ class ExprConclusionLine(Node):
                 date_array.append(date_time)
 
             if len(date_array) > 0:
-                result = (date_array[0] - date_array[1]).days/365.2
+                result = (date_array[0] - date_array[1]).days / 365.2
             else:
                 result = eval(temp_script)
 
@@ -108,5 +111,3 @@ class ExprConclusionLine(Node):
                 return_value = FactValue(result, FactValueType.BOOLEAN)
 
         return return_value
-
-

@@ -1,9 +1,8 @@
 import json
 
-from flask import session
+from flask import jsonify, Response, request, make_response
 
-import project
-from project import create_app
+from project import create_app, session
 from project.domain.create_file import CreateFile
 from project.domain.models import Rule, History
 from project.domain.update_rule_description import UpdateRuleDescription
@@ -11,109 +10,141 @@ from project.fact_values import FactValue
 from project.fact_values.fact_value_type import FactValueType
 from project.inference import InferenceEngine, Assessment
 from project.nodes import HistoryRecord, LineType
-from project.repository import RuleRepository
+# from project.repository import RuleRepository
 from project.rule_parser import RuleSetReader, RuleSetScanner
 from project.rule_parser.rule_set_parser import RuleSetParser
+from project.repository import find_rule_by_rule_name, create_rule_file
+from project.repository import find_rule_text_by_rule_name
+from project.repository import find_all_rules
+from project.repository import update_rule_name_and_category
+from project.repository import create_rule
+from project.repository import find_id_by_name
+from project.repository import create_rule_history
 
 app = create_app()
 
-rule_prefix_url = 'service/rule/'
-inference_prefix_url = 'service/inference/'
+rule_prefix_url = '/service/rule/'
+inference_prefix_url = '/service/inference/'
 
 
 @app.route(rule_prefix_url + 'searchRuleByName')
-def search_rule_by_name(rule_name: str):  # put application's code here
-    return RuleRepository.find_rule_by_rule_name(rule_name)
+def search_rule_by_name(nadia_rule_name: str):  # put application's code here
+    return find_rule_by_rule_name(nadia_rule_name)
 
 
+############################################################# Done
 @app.route(rule_prefix_url + 'findRuleTextByName')
-def find_rule_text_by_name(rule_name: str):
-    temp_rule = RuleRepository.find_rule_text_by_rule_name(rule_name)
-    if temp_rule is not None:
-        rule_file = temp_rule.get_the_latest_file()
-        return json.loads("{\"ruleText\":\"" + rule_file.decode('ascii') + "\"}")
+def find_rule_text_by_name():
+    nadia_rule_name = request.args.get('ruleName')
+    temp_rule = find_rule_text_by_rule_name(nadia_rule_name)
+    response = jsonify("{}")
+    response.headers.add('Access-Control-Allow-Origin', '*')
 
-    return None
+    if temp_rule is not None:
+        # rule_file = temp_rule.get_the_latest_file()
+        # response = jsonify("{\"ruleText\":\"" + temp_rule.files.decode('utf-8') + "\"}")
+        response = {"ruleText": temp_rule.files.decode('utf-8')}
+
+        return response
+
+    return response
 
 
 @app.route(rule_prefix_url + 'findTheLatestRuleFileByName')
-def get_the_latest_rule_file_by_name(rule_name):
-    return RuleRepository.find_rule_text_by_rule_name(rule_name).get_the_latest_file()
+def get_the_latest_rule_file_by_name():
+    ###### ##################       Current
+    nadia_rule_name = request.args.get('ruleName')
+    return find_rule_text_by_rule_name(nadia_rule_name)
 
 
 @app.route(rule_prefix_url + 'findTheLatestRuleHistoryByName')
-def get_the_latest_rule_history_by_name(rule_name):
-    temp_rule = RuleRepository.find_rule_by_rule_name(rule_name)
+def get_the_latest_rule_history_by_name(nadia_rule_name):
+    temp_rule = find_rule_by_rule_name(nadia_rule_name)
     if temp_rule is not None:
         return temp_rule.get_the_latest_history()
     return None
 
 
+############################################################# Done
 @app.route(rule_prefix_url + 'findAllRules')
 def get_all_rules():
-    return RuleRepository.find_all_rules()
+    response = json.dumps(find_all_rules(), indent=4)
+    # response.headers.add('Access-Control-Allow-Origin', '*')
+    # return find_all_rules()
+    return response
+    # return jsonify({'rule_list': rule_list})
 
 
-@app.route(rule_prefix_url + 'updateRule', method=['POST'])
-def update_rule(update_rule: UpdateRuleDescription):
-    old_rule_name = update_rule.get_old_rule_name()
-    new_rule_name = update_rule.get_new_rule_name()
-    new_rule_category = update_rule.get_new_category()
-    RuleRepository.update_rule_name_and_category(old_rule_name, new_rule_name, new_rule_category)
-    rule_from_database = RuleRepository.find_rule_by_rule_name(new_rule_name)
+@app.route(rule_prefix_url + 'updateRule', methods=['POST'])
+def update_rule():
+
+    old_rule_name = request.json['oldRuleName']
+    new_rule_name = request.json['newRuleName']
+    new_rule_category = request.json['newRuleCategory']
+    update_rule_name_and_category(old_rule_name, new_rule_name, new_rule_category)
+    rule_from_database = find_rule_by_rule_name(new_rule_name)
 
     if rule_from_database is not None:
-        return json.loads(
+        return jsonify(
             '{"newRuleName":' + rule_from_database.name + ", \"newCategory\": \"" + rule_from_database.category + "\"}")
 
     return None
 
 
-@app.route(rule_prefix_url + 'createNewRule', method=['POST'])
+@app.route(rule_prefix_url + 'createNewRule', methods=['POST'])
 def create_new_rule(new_rule: Rule):
     new_rule_name = new_rule.name
     new_rule_category = new_rule.category
-    RuleRepository.create_new_rule(new_rule_name, new_rule_category)
+    create_rule(new_rule_category)
 
-    rule_from_database = RuleRepository.find_rule_by_rule_name(new_rule_name)
+    rule_from_database = find_rule_by_rule_name(new_rule_name)
     if rule_from_database is not None:
-        return json.loads(
+        return jsonify(
             "{\"ruleName\":\"" + rule_from_database.name + "\", \"category\":\"" + rule_from_database.category + "\"}")
 
     return None
 
 
-@app.route(rule_prefix_url + 'createFile', method=['POST'])
-def create_file(create_file: CreateFile):
-    rule_name = create_file.get_rule_name()
-    rule_text = create_file.get_rule_text()
+@app.post(rule_prefix_url + 'createFile')
+def create_file():
+    # my_request = request.json
+    rule_name = request.json['ruleName']
+    rule_text = request.json['ruleText']
     rule_text_byte_array = bytearray(rule_text, 'utf-8')
 
-    rule_id = RuleRepository.find_id_by_name(rule_name)
-    RuleRepository.create_rule_file(rule_id, rule_text_byte_array)
+    rule_id = find_id_by_name(rule_name)
+    create_rule_file(rule_id, rule_text_byte_array)
 
-    rule_file_from_database = RuleRepository.find_rule_text_by_rule_name(rule_name).get_the_latest_file()
+    rule_file_from_database = find_rule_text_by_rule_name(rule_name)
+
+    response = jsonify("{}")
+    response.headers.add('Access-Control-Allow-Origin', '*')
 
     if rule_file_from_database is not None:
-        return json.loads("{\"ruleText\":\"" + rule_file_from_database.files + "\"}")
+        return jsonify("{\"ruleText\":\"" + rule_file_from_database.files.decode('utf-8') + "\"}")
 
-    return None
+    return response
 
 
-@app.route(rule_prefix_url + 'updateHistory', method=['POST'])
-def update_history(request_rule: CreateFile):
-    inference_engine: InferenceEngine = session.get('inferenceEngine')
+@app.route(rule_prefix_url + 'updateHistory', methods=['POST'])
+def update_history():
+    inference_engine: InferenceEngine = session.__getattribute__('inferenceEngine')
     working_memory: dict = inference_engine.get_assessment_state().get_working_memory()
 
-    rule_name = request_rule.get_rule_name()
-    rule_history: History = get_the_latest_rule_history_by_name(rule_name)
+    rule_name = request.json['ruleName']
+    rule_history: History
+    temp_rule = find_rule_by_rule_name(rule_name)
+
+    if temp_rule is not None:
+        rule_history = temp_rule.get_the_latest_history()
+
     parent_temp_history: json = json.loads("{}")
 
     if rule_history is not None:
         target_history: json = rule_history.history
         record_list = list()
 
-        filtered_list = list()
+        filtered_dict = dict()
 
         # this is for the case of rules in workingMemory.
         # Hence, the rules should be checked if it is in history list or not.
@@ -121,30 +152,37 @@ def update_history(request_rule: CreateFile):
         # the workingMemory,
         # and if is not in the history list then create a new record, and insert the new record into the history list.
         for each_rule_key in working_memory.keys():
-            for history_key in target_history:
-                if history_key == each_rule_key:
-                    filtered_list.append({history_key: target_history[history_key]})
+            if each_rule_key not in inference_engine.get_node_set().get_fact_dictionary().keys():
+                for history_key in target_history:
+                    if history_key == each_rule_key:
+                        filtered_dict[history_key] = target_history[history_key]
 
-            record = HistoryRecord()
-            record.set_name(each_rule_key)
+                        # filtered_list.append({history_key: target_history[history_key]})
 
-            if len(filtered_list) > 0:
-                record.set_false_count(int(filtered_list[0].get('false')))
-                record.set_true_count(int(filtered_list[0].get('true')))
+                record = HistoryRecord()
+                record.set_name(each_rule_key)
 
-            fact_value: FactValue = working_memory[each_rule_key]
+                if len(filtered_dict) > 0:
+                    record.set_false_count(int(filtered_dict.get(each_rule_key).get('false')))
+                    record.set_true_count(int(filtered_dict.get(each_rule_key).get('true')))
+                # if len(filtered_list) > 0:
+                #     print(each_rule_key)
+                #     record.set_false_count(int(filtered_list[0].get(each_rule_key).get('false')))
+                #     record.set_true_count(int(filtered_list[0].get(each_rule_key).get('true')))
 
-            if fact_value.get_value_type() == FactValueType.BOOLEAN:
-                record.set_type(str(fact_value.get_value_type()).lower())
-                if fact_value.get_value() is True:
-                    record.increment_true_count()
+                fact_value: FactValue = working_memory[each_rule_key]
+
+                if fact_value.get_value_type() == FactValueType.BOOLEAN:
+                    record.set_type(str(fact_value.get_value_type().value).lower())
+                    if fact_value.get_value() is True:
+                        record.increment_true_count()
+                    else:
+                        record.increment_false_count()
                 else:
-                    record.increment_false_count()
-            else:
-                record.set_type(str(fact_value.get_value_type()).lower())
-                record.increment_true_count()
+                    record.set_type(str(fact_value.get_value_type()).lower())
+                    record.increment_true_count()
 
-            record_list.append(record)
+                record_list.append(record)
 
         # this is for the case of rules that are not Boolean type and is in history list but not currently being asked.
         # Hence, the record for the rule should be incremented for 'FALSE' due to it is equivalent to 'FALSE' case
@@ -193,14 +231,14 @@ def update_history(request_rule: CreateFile):
             temp_history["type"] = str(working_memory.get(work_item).get_value_type())
             parent_temp_history[work_item] = temp_history
 
-    RuleRepository.create_rule_history(RuleRepository.find_id_by_name(rule_name), parent_temp_history)
+    create_rule_history(temp_rule.rule_id, parent_temp_history)
 
-    return json.loads("\"update\":\"done\"")
+    return json.loads("{\"update\":\"done\"}")
 
 
 @app.route(inference_prefix_url + 'viewSummary')
 def view_summary():
-    inference_engine: InferenceEngine = session.get('inferenceEngine')
+    inference_engine: InferenceEngine = session.__getattribute__('inferenceEngine')
     temp_summary_list = list()
     temp_assessment_state = inference_engine.get_assessment_state()
     temp_working_memory = temp_assessment_state.get_working_memory()
@@ -217,14 +255,21 @@ def view_summary():
         if each_key not in inference_engine.get_assessment_state().get_summary_list():
             summary_json = json.loads("{}")
             summary_json['nodeText'] = each_key
-            summary_json['nodeValue'] = str(temp_working_memory.get(each_key).get_value())
+            if type(temp_working_memory.get(each_key).get_value()) == list:
+                fact_list = list()
+                for each_fact in temp_working_memory.get(each_key).get_value():
+                    fact_list.append(each_fact.get_value())
+                summary_json['nodeValue'] = json.dumps(fact_list)
+            else:
+                summary_json['nodeValue'] = str(temp_working_memory.get(each_key).get_value())
+
             temp_summary_list.append(summary_json)
 
     return temp_summary_list
 
 
 # TODO: this API still needs further work
-@app.route(inference_prefix_url + 'editAnswer', method=['POST'])
+@app.route(inference_prefix_url + 'editAnswer', methods=['POST'])
 def edit_answer(question: json):
     inference_engine: InferenceEngine = session.get('inferenceEngine')
     assessment: Assessment = session.get('assessment')
@@ -256,15 +301,13 @@ def edit_answer(question: json):
     return object_node
 
 
-@app.route(inference_prefix_url + 'feedAnswer', method=['POST'])
-def feed_answer(answers: json):
-    inference_engine: InferenceEngine = session.get('inferenceEngine')
-    assessment: Assessment = session.get('assessment')
+@app.route(inference_prefix_url + 'feedAnswer', methods=['POST'])
+def feed_answer():
+    inference_engine: InferenceEngine = session.__getattribute__('inferenceEngine')
+    assessment: Assessment = session.__getattribute__('assessment')
 
-    first_key_and_value = list(answers.items())[0]
-
-    question_name: str = first_key_and_value[0]
-    answer_entry: json = first_key_and_value[1]
+    question_name = request.json['question']
+    answer_entry = request.json['answer']
 
     from project.fact_values import FactValueType
     fact_value_type: FactValueType = FactValueType[str(answer_entry['type']).upper()]
@@ -280,7 +323,7 @@ def feed_answer(answers: json):
 
     object_node = json.loads("{}")
     if inference_engine.get_assessment_state().get_working_memory().get(
-            assessment.get_goal_node().get_node_name() is None) \
+            assessment.get_goal_node().get_node_name()) is None \
             or inference_engine.get_assessment_state().all_mandatory_node_determined() is not True:
         object_node['hasMoreQuestion'] = 'true'
     else:
@@ -290,19 +333,22 @@ def feed_answer(answers: json):
         object_node['goalRuleValue'] = str(
             inference_engine.get_assessment_state().get_working_memory().get(goal_node_name).get_value())
         object_node['goalRuleType'] = str(
-            inference_engine.find_type_of_element_to_be_asked(assessment.get_goal_node()).get(goal_node_name)).lower()
+            inference_engine.find_type_of_element_to_be_asked(assessment.get_goal_node()).get(
+                goal_node_name).value).lower()
 
     return object_node
 
 
 @app.route(inference_prefix_url + 'getNextQuestion')
-def get_next_question(rule_name: str):
-    inference_engine: InferenceEngine = session.get('inferenceEngine')
-    if inference_engine is None or inference_engine.get_node_set().get_node_set_name() != rule_name:
-        set_inference_engine(rule_name)
+def get_next_question():
+    nadia_rule_name = request.args.get('targetRuleName')
+    # nadia_rule_name = request.args.get('ruleName')
+    inference_engine: InferenceEngine = session.__getattribute__('inferenceEngine')
+    if inference_engine is None or inference_engine.get_node_set().get_node_set_name() != nadia_rule_name:
+        set_inference_engine()
 
-    inference_engine: InferenceEngine = session.get('inferenceEngine')
-    assessment: Assessment = session.get('assessment')
+    inference_engine: InferenceEngine = session.__getattribute__('inferenceEngine')
+    assessment: Assessment = session.__getattribute__('assessment')
     next_question_node = inference_engine.get_next_question(assessment)
     if assessment.get_node_to_be_asked().get_line_type() == LineType.ITERATE:
         assessment.set_aux_node_to_be_asked(next_question_node)
@@ -313,7 +359,7 @@ def get_next_question(rule_name: str):
     for question in questionnaire:
         object_node = json.loads("{}")
         object_node['questionText'] = question
-        object_node['questionValueType'] = str(question_fact_value_type_dict.get(question)).lower()
+        object_node['questionValueType'] = str(question_fact_value_type_dict.get(question).value).lower()
 
         questionnaire_list.append(object_node)
 
@@ -321,35 +367,35 @@ def get_next_question(rule_name: str):
 
 
 @app.route(inference_prefix_url + 'setInferenceEngine')
-def set_inference_engine(rule_name: str):
-    inference_engine = InferenceEngine()
-    rule_text: str = str(get_the_latest_rule_file_by_name(rule_name).files, 'utf-8')
+def set_inference_engine():
+    nadia_rule_name = request.args.get('ruleName')
+    rule_text: str = str(find_rule_text_by_rule_name(nadia_rule_name).files, 'utf-8')
     rule_set_reader = RuleSetReader()
     rule_set_parser = RuleSetParser()
     rule_set_reader.set_file_with_text(rule_text)
     rule_set_scanner = RuleSetScanner(rule_set_reader, rule_set_parser)
     rule_set_scanner.scan_rule_set()
     rule_set_scanner.establish_node_set()
+    inference_engine = InferenceEngine(rule_set_parser.get_node_set())
 
-    inference_engine.set_node_set(rule_set_parser.get_node_set())
-    inference_engine.get_node_set().set_node_set_name(rule_name)
-
-    assessment = Assessment()
-    assessment.set_assessment(rule_set_parser.get_node_set(),
-                              rule_set_parser.get_node_set().get_sorted_node_list()[0].get_node_name())
+    # inference_engine.set_node_set(rule_set_parser.get_node_set())
+    inference_engine.get_node_set().set_node_set_name(nadia_rule_name)
+    assessment = Assessment(rule_set_parser.get_node_set(),
+                            rule_set_parser.get_node_set().get_sorted_node_list()[0].get_node_name())
     inference_engine.set_assessment(assessment)
-    session['inferenceEngine'] = inference_engine
-    session['assessment'] = assessment
+
+    session.__setattr__('inferenceEngine', inference_engine)
+    session.__setattr__('assessment', assessment)
     object_node = json.loads("{}")
     object_node['InferenceEngine'] = 'created'
 
-    return object_node
+    return jsonify(object_node)
 
 
 @app.route(inference_prefix_url + "setMachineLearningInferenceEngine")
-def set_machine_learning_inference_engine(rule_name):
-    inference_engine = InferenceEngine()
-    rule_text: str = str(get_the_latest_rule_file_by_name(rule_name).files, 'utf-8')
+def set_machine_learning_inference_engine():
+    nadia_rule_name = request.args.get('ruleName')
+    rule_text: str = str(find_rule_text_by_rule_name(nadia_rule_name).files, 'utf-8')
     rule_set_reader = RuleSetReader()
     rule_set_parser = RuleSetParser()
 
@@ -357,23 +403,27 @@ def set_machine_learning_inference_engine(rule_name):
     rule_set_scanner = RuleSetScanner(rule_set_reader, rule_set_parser)
     rule_set_scanner.scan_rule_set()
 
-    rule_history: History = get_the_latest_rule_history_by_name(rule_name)
+    temp_rule = find_rule_by_rule_name(nadia_rule_name)
+    rule_history: History = None
+    if temp_rule is not None:
+        rule_history = temp_rule.get_the_latest_history()
+
     history_dict = dict()
     if rule_history is not None:
-        history_dict = rule_history.get_history_dict()
+        history_dict = rule_history.history
     else:
         history_dict = None
 
     rule_set_scanner.establish_node_set(history_dict)
-    inference_engine.set_node_set(rule_set_parser.get_node_set())
-    inference_engine.get_node_set().set_node_set_name(rule_name)
+    inference_engine = InferenceEngine(rule_set_parser.get_node_set())
+    inference_engine.get_node_set().set_node_set_name(nadia_rule_name)
 
-    assessment = Assessment()
-    assessment.set_assessment(rule_set_parser.get_node_set(),
-                              rule_set_parser.get_node_set().get_sorted_node_list()[0].get_node_name())
+    assessment = Assessment(rule_set_parser.get_node_set(),
+                            rule_set_parser.get_node_set().get_sorted_node_list()[0].get_node_name())
     inference_engine.set_assessment(assessment)
-    session['inferenceEngine'] = inference_engine
-    session['assessment'] = assessment
+
+    session.__setattr__('inferenceEngine', inference_engine)
+    session.__setattr__('assessment', assessment)
 
     object_node = json.loads("{}")
     object_node['InferenceEngine'] = 'created'

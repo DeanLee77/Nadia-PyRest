@@ -1,8 +1,8 @@
+import json
 from abc import ABCMeta
 import abc
-from typing import Optional
+# from typing import Optional
 
-from project.fact_values import FactValue
 from project.fact_values import FactValueType
 from project.nodes.line_type import LineType
 from project.tokens.token import Token
@@ -27,6 +27,9 @@ class Node(metaclass=ABCMeta):
         self._tokens = tokens
 
         self.initialisation(parent_text, tokens)
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
     @abc.abstractmethod
     def initialisation(self, parent_text: str, tokens: Token): pass

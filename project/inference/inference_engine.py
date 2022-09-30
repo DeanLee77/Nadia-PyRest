@@ -8,8 +8,8 @@ from project.inference import AssessmentState
 from project.nodes import ComparisonLine
 from project.nodes import DependencyType
 from project.nodes import LineType
-from project.nodes import Node
-from project.nodes import NodeSet
+from project.nodes.node import Node
+from project.nodes.node_set import NodeSet
 from project.nodes import ValueConclusionLine
 from project.loggers import Logger
 
@@ -37,6 +37,11 @@ class InferenceEngine:
             for key in temp_fact_dict.keys():
                 temp_working_memory[key] = temp_fact_dict[key]
 
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
+
+
     def set_node_set(self, node_set: NodeSet):
         self.__nodeSet = node_set
         self.__ast = self.new_assessment_state()
@@ -54,7 +59,7 @@ class InferenceEngine:
         return self.__ast
 
     def new_assessment_state(self) -> AssessmentState:
-        initial_size = len(self.__nodeSet.get_sorted_node_list()) * 2
+        # initial_size = len(self.__nodeSet.get_sorted_node_list()) * 2
         ast = AssessmentState()
         # inclusive_list = [None] * initial_size
         # summary_list = [None] * initial_size

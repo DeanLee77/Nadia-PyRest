@@ -13,8 +13,8 @@ from project.fact_values import FactValue
 from project.fact_values import FactValueType
 from project.loggers import Logger
 from project.nodes import LineType
-from project.nodes import Node
-from project.nodes import NodeSet
+from project.nodes.node import Node
+from project.nodes.node_set import NodeSet
 
 logging: Logger = Logger.get_logger(__name__)
 

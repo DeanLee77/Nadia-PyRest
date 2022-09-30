@@ -1,3 +1,4 @@
+import json
 from enum import Enum
 
 
@@ -21,6 +22,9 @@ class FactValueType(Enum):
     GUID = "GUID"
     NULL = "NULL"
     WARNING = "WARNING"
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
     @staticmethod
     def get_all_values():

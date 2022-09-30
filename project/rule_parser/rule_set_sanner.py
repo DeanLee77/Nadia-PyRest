@@ -2,7 +2,7 @@ import re
 from collections import deque
 
 from project.inference import TopologicalSort
-from project.nodes import NodeSet
+from project.nodes.node_set import NodeSet
 from project.rule_parser import ILineReader
 from project.rule_parser import IScanFeeder
 
@@ -51,6 +51,8 @@ class RuleSetScanner:
                 # does it begin with a white space?
                 elif line[0].isspace():
                     current_whitespace = len(line) - len(line_trimmed)  # calculating indentation level
+                    if line[0] != '\t' and current_whitespace % 4 == 0:
+                        current_whitespace = int(current_whitespace/4)
 
                     if len(line_trimmed) == 0:  # is it a blank line?
                         parent = ""

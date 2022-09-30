@@ -2,7 +2,7 @@ import logging
 import re
 
 from project.loggers import Logger
-from project.nodes import Node
+from project.nodes.node import Node
 from project.nodes.meta_type import MetaType
 from datetime import datetime
 from project.fact_values import FactValue

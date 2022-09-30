@@ -1,8 +1,9 @@
+import json
 import logging
 from re import search
 
 from project.loggers import Logger
-from project.nodes import Node
+from project.nodes.node import Node
 from project.nodes.line_type import LineType
 from project.fact_values import FactValue
 from project.tokens import Token
@@ -31,6 +32,9 @@ class ValueConclusionLine(Node):
 
     def __init__(self, node_text: str, tokens: Token):
         super().__init__(node_text, tokens)
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
     def initialisation(self, node_text: str, tokens: Token):
         logging.info("Generating ValueConclusion Line with : " + str(node_text))

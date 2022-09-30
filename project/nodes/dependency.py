@@ -1,5 +1,7 @@
+import json
+
 from project.loggers import Logger
-from project.nodes import Node
+from project.nodes.node import Node
 
 logging: Logger = Logger.get_logger(__name__)
 
@@ -16,6 +18,10 @@ class Dependency:
         logging.info("Generating Dependency with : " + str(dependency_type) +
                      ", Parent Text: " + str(parent.get_node_line()) +
                      ", Child Text: " + str(child.get_node_line()))
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
+
 
     def get_parent_node(self):
         return self.__parent

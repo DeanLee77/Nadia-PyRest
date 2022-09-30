@@ -1,6 +1,6 @@
 import string
 
-from project.fact_values import FactValueType
+from project.fact_values.fact_value_type import FactValueType
 
 
 class TokenStringDictionary:

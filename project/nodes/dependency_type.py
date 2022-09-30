@@ -1,3 +1,6 @@
+import json
+
+
 class DependencyType:
     __mandatoryDependency = 64  # 1000000
     __optionalDependency = 32  # 0100000
@@ -9,6 +12,10 @@ class DependencyType:
     __dependencyArray = []
 
     def __init__(self): pass
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
+
 
     @classmethod
     def get_mandatory(cls) -> int:

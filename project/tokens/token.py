@@ -1,3 +1,5 @@
+import json
+
 from project.loggers import Logger
 
 
@@ -13,6 +15,9 @@ class Token:
             self.__tokens_list = tokens_list
             self.__tokens_string_list = tokens_string_list
             self.__tokens_string = tokens_string
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
     def get_tokens_list(self) -> []:
         return self.__tokens_list

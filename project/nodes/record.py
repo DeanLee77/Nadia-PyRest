@@ -1,3 +1,9 @@
+import json
+
+from project.loggers import Logger
+
+logging: Logger = Logger.get_logger(__name__)
+
 class HistoryRecord:
     __name = None
     __type = None
@@ -9,6 +15,14 @@ class HistoryRecord:
         self.__type = type
         self.__trueCount = true_count
         self.__falseCount = false_count
+        logging.info("Generating Record : "
+                     "Name-"+str(name)+", "
+                     "Type-"+str(type)+", "
+                     "True Count-"+str(true_count)+", "
+                     "False Count-"+str(false_count))
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
     def set_name(self, name):
         self.__name = name

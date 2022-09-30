@@ -4,8 +4,8 @@ import re
 
 from project.constants import DependencyTypeStringMatcher
 from project.nodes import DependencyMatrix
-from project.nodes import IterateLine
-from project.nodes import NodeSet
+from project.nodes.iterate_line import IterateLine
+from project.nodes.node_set import NodeSet
 from project.nodes import LineType
 from project.rule_parser import IScanFeeder
 from project.tokens import Tokenizer
@@ -19,7 +19,7 @@ from project.fact_values import FactValueType
 from project.nodes import DependencyType
 from project.nodes import Dependency
 from project.nodes import MetaType
-from project.nodes import Node
+from project.nodes.node import Node
 from project.loggers.logger import Logger
 
 logging: Logger = Logger.get_logger(__name__)

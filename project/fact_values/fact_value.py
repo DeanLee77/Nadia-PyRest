@@ -1,10 +1,11 @@
+import json
 import re
 from datetime import datetime
 
-from tokens.tokenizer import Tokenizer
-from tokens.token_string_dictionary import TokenStringDictionary
-from fact_values.fact_value_type import FactValueType
-from loggers.logger import Logger
+from project.tokens import Tokenizer
+from project.tokens import TokenStringDictionary
+from project.fact_values.fact_value_type import FactValueType
+from project.loggers import Logger
 
 logging: Logger = Logger.get_logger(__name__)
 
@@ -63,6 +64,9 @@ class FactValue:
             self.__value_type = value_type
 
         logging.info("Initialising FactValue with " + str(value) + ", type: " + self.__value_type.value)
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
     def get_value(self) -> any:
         return self.__value
