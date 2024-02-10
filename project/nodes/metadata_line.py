@@ -1,13 +1,9 @@
-import logging
 import re
-
 from project.loggers import Logger
-from project.nodes.node import Node
-from project.nodes.meta_type import MetaType
 from datetime import datetime
-from project.fact_values import FactValue
-from project.fact_values import FactValueType
-from project.nodes.line_type import LineType
+from project.fact_values import FactValue, FactValueType
+from . import LineType, MetaType
+from .node import Node
 from project.tokens import Token
 
 
@@ -25,6 +21,7 @@ class MetadataLine(Node):
 
     def __init__(self, node_text: str, tokens: Token):
         super().__init__(node_text, tokens)
+        self._lineType = LineType.META
 
     def initialisation(self, parent_text: str, tokens: Token):
         logging.info("Generating Metadata Line with : " + str(parent_text))

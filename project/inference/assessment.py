@@ -25,10 +25,15 @@ class Assessment:
     __aux_node_to_be_asked: Node
 
     def __init__(self, node_set: NodeSet = None, goal_node_name: str = None):
-        self.__goal_node = node_set.get_node_dictionary()[goal_node_name]
-        self.__goal_node_index = node_set.find_node_index(goal_node_name)
+        self.__goal_node = None
         self.__node_to_be_asked = None
         self.__aux_node_to_be_asked = None
+        self.__goal_node_index = -1
+
+        if node_set != None and goal_node_name != None:
+            self.__goal_node = node_set.get_node_dictionary()[goal_node_name]
+            self.__goal_node_index = node_set.find_node_index(goal_node_name)
+
 
     def __repr__(self):
         return json.dumps(self.__dict__)
@@ -55,4 +60,3 @@ class Assessment:
 
     def get_aux_node_to_be_asked(self) -> Node:
         return self.__aux_node_to_be_asked
-

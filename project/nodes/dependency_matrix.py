@@ -24,7 +24,7 @@ class DependencyMatrix:
     def __repr__(self):
         return json.dumps(self.__dict__)
 
-    def __init__(self, dependency_two_dimension_list):
+    def __init__(self, dependency_two_dimension_list=None):
         self.__dependencyTwoDimensionList = dependency_two_dimension_list
         self.__dependencyListSize = len(dependency_two_dimension_list)
 

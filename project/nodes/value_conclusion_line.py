@@ -1,7 +1,4 @@
 import json
-import logging
-from re import search
-
 from project.loggers import Logger
 from project.nodes.node import Node
 from project.nodes.line_type import LineType
@@ -28,10 +25,11 @@ class ValueConclusionLine(Node):
     # If the rule statement is in a format of 'A-statement'
     # then a default value of variable 'value' will be set as 'false'
 
-    __isPlainStatementFormat = None
+    __isPlainStatementFormat = False
 
-    def __init__(self, node_text: str, tokens: Token):
+    def __init__(self, node_text: str=None, tokens: Token=None):
         super().__init__(node_text, tokens)
+        self._lineType = LineType.VALUE_CONCLUSION
 
     def __repr__(self):
         return json.dumps(self.__dict__)

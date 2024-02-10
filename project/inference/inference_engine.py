@@ -1,16 +1,10 @@
 import json
 from datetime import *
-
-from project.fact_values import FactValue
-from project.fact_values import FactValueType
-from project.inference import Assessment
-from project.inference import AssessmentState
-from project.nodes import ComparisonLine
-from project.nodes import DependencyType
-from project.nodes import LineType
+from project.fact_values import FactValue, FactValueType
+from project.inference import Assessment, AssessmentState
+from project.nodes import ComparisonLine, ValueConclusionLine, DependencyType, LineType
 from project.nodes.node import Node
 from project.nodes.node_set import NodeSet
-from project.nodes import ValueConclusionLine
 from project.loggers import Logger
 
 logging: Logger = Logger.get_logger(__name__)
@@ -27,7 +21,7 @@ class InferenceEngine:
         self.__nodeSet = node_set
         self.__targetNode = None
         self.__ast = self.new_assessment_state()
-        self.__ass = None
+        self.__ass = Assessment()
         self.__nodeFactList = list()  # contains all rules set as a fact given by a user from a ruleList
 
         temp_fact_dict = node_set.get_fact_dictionary()
@@ -38,9 +32,48 @@ class InferenceEngine:
                 temp_working_memory[key] = temp_fact_dict[key]
 
 
-    def __repr__(self):
-        return json.dumps(self.__dict__)
+    # def __repr__(self):
+    #     return json.dumps(self.__dict__)
+    
+    # def __getstate__(self):
+    #     def serialiseList(list):
+    #         serialisedList = []
+    #         for item in list:
+    #             serialisedList.append(item.__getstate__())
+            
+    #         return serialisedList
+        
+    #     # Serialize the object's state into a dictionary
+    #     state = {
+    #         "_InferenceEngine__nodeSet": self.__nodeSet.__getstate__() if self.__nodeSet != None else None,
+    #         "_InferenceEngine__targetNode": self.__targetNode.__getstate__() if self.__targetNode != None else None,
+    #         "_InferenceEngine__ast": self.__ast.__getstate__(),
+    #         "_InferenceEngine__ass": self.__ass.__getstate__() if self.__ass != None else None,
+    #         "_InferenceEngine__nodeFactList": serialiseList(self.__nodeFactList)
+    #     }
+    #     return state
 
+    # def __setstate__(self, state):
+    #     def deserialseList(serialisedList):
+    #         deserialsedList = []
+    #         for item in serialisedList:
+    #             deserialsedList.append(LineType.get_appropriate_node_type(item['_lineType']['name']).__setstate__(item))
+            
+    #         return deserialsedList
+
+    #     # Deserialize the object's state from the provided dictionary
+    #     nodeSet = NodeSet()
+    #     self.__nodeSet = nodeSet.__setstate__(state["_InferenceEngine__nodeSet"])
+        
+    #     LineType.get_appropriate_node_type(state["_InferenceEngine__targetNode"]['_linetype']['name'])\
+    #             .__setstate__(state["_InferenceEngine__targetNode"])
+
+    #     ass = Assessment()
+    #     self.__ass = ass.__setstate__(state["_InferenceEngine__ass"])
+
+    #     self.__ast = jsonpickle.decode(state["_InferenceEngine__ast"])        
+    #     self.__nodeFactList = deserialseList(state["_InferenceEngine__nodeFactList"])
+        
 
     def set_node_set(self, node_set: NodeSet):
         self.__nodeSet = node_set

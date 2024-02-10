@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from project.loggers import Logger
-from project.nodes import Node
+from project.nodes.node import Node
 from project.nodes import DependencyType
 
 logging: Logger = Logger.get_logger(__name__)
@@ -34,7 +34,7 @@ class TopologicalSort:
             node_id = node.get_node_id()
 
             for index in range(size_of_matrix):
-                if (node_id is not index) and copy_of_dependency_matrix[node_id][index] is not -1:
+                if (node_id is not index) and copy_of_dependency_matrix[node_id][index] != -1:
                     # this is to remove dependency from 'nodes' to child nodes with nodeId == 'i'
                     copy_of_dependency_matrix[node_id][index] = -1
                     # from this line, it is process to check whether or not the child nodes with nodeId == 'i'

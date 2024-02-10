@@ -1,6 +1,4 @@
 import io
-
-
 from project.rule_parser import ILineReader
 from project.loggers import Logger
 
@@ -8,7 +6,10 @@ logging: Logger = Logger.get_logger(__name__)
 
 
 class RuleSetReader(ILineReader):
+
     __bufferedReader = None
+    def create(self):
+        self.__bufferedReader = None
 
     def set_file_with_path(self, file_path) -> None:
         try:

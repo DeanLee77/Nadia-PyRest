@@ -1,14 +1,10 @@
 import json
-from abc import ABCMeta
+import re
 import abc
-# from typing import Optional
-
+from abc import ABCMeta
 from project.fact_values import FactValueType
 from project.nodes.line_type import LineType
-from project.tokens.token import Token
-from project.tokens.token_string_dictionary import TokenStringDictionary
-import re
-
+from project.tokens import Token, TokenStringDictionary
 from project.fact_values import FactValue
 
 
@@ -18,15 +14,17 @@ class Node(metaclass=ABCMeta):
     _nodeName: str = None
     _nodeLine: int = None
     _variableName: str = None
-    _value: FactValue = None
-    _tokens: Token = None
+    _value: FactValue = FactValue()
+    _tokens: Token = Token()
+    _lineType: LineType
 
-    def __init__(self, parent_text, tokens):
+    def __init__(self, parent_text=None, tokens=None):
         self._nodeId = Node.__staticNodeId
         Node.__staticNodeId += 1
-        self._tokens = tokens
-
-        self.initialisation(parent_text, tokens)
+        
+        if parent_text != None and tokens != None:
+            self.initialisation(parent_text, tokens)
+            self._tokens = tokens
 
     def __repr__(self):
         return json.dumps(self.__dict__)

@@ -1,5 +1,4 @@
 import json
-
 from project.loggers import Logger
 
 logging: Logger = Logger.get_logger(__name__)

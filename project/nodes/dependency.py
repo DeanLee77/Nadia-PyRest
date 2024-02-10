@@ -22,7 +22,6 @@ class Dependency:
     def __repr__(self):
         return json.dumps(self.__dict__)
 
-
     def get_parent_node(self):
         return self.__parent
 

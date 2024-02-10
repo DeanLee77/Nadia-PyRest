@@ -1,4 +1,5 @@
 import json
+
 from enum import Enum
 
 
@@ -37,3 +38,4 @@ class FactValueType(Enum):
     @classmethod
     def __contains__(cls, item):
         return item in [v.value for v in cls.__members__.values()]
+    

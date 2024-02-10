@@ -1,14 +1,11 @@
 import json
-from datetime import datetime
 import re
-
+from datetime import datetime
 from project.loggers import Logger
 from project.nodes.node import Node
 from project.nodes.line_type import LineType
-from project.fact_values import FactValue
-from project.fact_values import FactValueType
-from project.tokens import Tokenizer
-from project.tokens import Token
+from project.fact_values import FactValue, FactValueType
+from project.tokens import Token, Tokenizer
 
 logging: Logger = Logger.get_logger(__name__)
 
@@ -20,6 +17,7 @@ class ExprConclusionLine(Node):
 
     def __init__(self, parent_text: str, tokens: Token):
         super().__init__(parent_text, tokens)
+        self._lineType = LineType.EXPR_CONCLUSION
 
     def __repr__(self):
         return json.dumps(self.__dict__)

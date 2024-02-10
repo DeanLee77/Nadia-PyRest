@@ -1,11 +1,29 @@
 import json
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy_serializer import Serializer
-
 from project import db
-# from project import ma
 from datetime import datetime
 from operator import attrgetter
+
+class User(db.Model, SerializerMixin):
+    __tablename__ = 'user'
+    serialize_rules = ()
+
+    user_id = db.Column(db.BigInteger, primary_key=True)
+    email = db.Column(db.String)
+    password = db.Column(db.String)
+
+
+    def __init__(self, email: str, password: str):
+        self.email = email
+        self.password = password
+
+    def serialize(self):
+        d = Serializer.serialize(self)
+        return d
+
+    def get_date_time(self):
+        return datetime.fromtimestamp(self.created_date)
 
 
 class Rule(db.Model, SerializerMixin):
@@ -15,13 +33,16 @@ class Rule(db.Model, SerializerMixin):
     rule_id = db.Column(db.BigInteger, primary_key=True)
     name = db.Column(db.String)
     category = db.Column(db.String)
+    description = db.Column(db.String)
     rule_files = db.relationship('File', backref='rule', lazy='dynamic')
     rule_histories = db.relationship('History', backref='rule', lazy='dynamic')
 
     def __init__(self, rule_name: str = None, rule_category: str = None,
-                 new_rule_files: list = None, new_rule_histories: list = None):
+                 rule_description: str = None,
+                 new_rule_files: list = [], new_rule_histories: list = []):
         self.name = rule_name
         self.category = rule_category
+        self.description = rule_description
         self.rule_files = new_rule_files
         self.rule_histories = new_rule_histories
 

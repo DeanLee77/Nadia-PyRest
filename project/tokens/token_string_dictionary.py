@@ -1,5 +1,4 @@
 import string
-
 from project.fact_values.fact_value_type import FactValueType
 
 

@@ -1,5 +1,4 @@
 import re
-
 from project.constants import TokenizerMatcherConstant
 from project.tokens import Token
 from project.loggers import Logger

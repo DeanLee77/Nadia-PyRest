@@ -16,7 +16,6 @@ class DependencyType:
     def __repr__(self):
         return json.dumps(self.__dict__)
 
-
     @classmethod
     def get_mandatory(cls) -> int:
         return cls.__mandatoryDependency

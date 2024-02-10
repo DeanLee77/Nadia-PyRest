@@ -1,11 +1,12 @@
 import json
+import requests
 
-from flask import jsonify, Response, request, make_response
-
-from project import create_app, session
+# from flask import jsonify, Response, request, make_response, session
+# from project import create_app
+from project import create_app, jsonify, request
 from project.domain.create_file import CreateFile
 from project.domain.models import Rule, History
-from project.domain.update_rule_description import UpdateRuleDescription
+from project.domain.update_rule_details import UpdateRuleDescription
 from project.fact_values import FactValue
 from project.fact_values.fact_value_type import FactValueType
 from project.inference import InferenceEngine, Assessment
@@ -20,11 +21,14 @@ from project.repository import update_rule_name_and_category
 from project.repository import create_rule
 from project.repository import find_id_by_name
 from project.repository import create_rule_history
+from project.loggers import Logger
 
+logging: Logger = Logger.get_logger(__name__)
 app = create_app()
 
 rule_prefix_url = '/service/rule/'
 inference_prefix_url = '/service/inference/'
+session = requests.session()
 
 
 @app.route(rule_prefix_url + 'searchRuleByName')
@@ -36,6 +40,7 @@ def search_rule_by_name(nadia_rule_name: str):  # put application's code here
 @app.route(rule_prefix_url + 'findRuleTextByName')
 def find_rule_text_by_name():
     nadia_rule_name = request.args.get('ruleName')
+    logging.info(f'THIS IS RULE NAME: {nadia_rule_name}')
     temp_rule = find_rule_text_by_rule_name(nadia_rule_name)
     response = jsonify("{}")
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -92,15 +97,19 @@ def update_rule():
 
 
 @app.route(rule_prefix_url + 'createNewRule', methods=['POST'])
-def create_new_rule(new_rule: Rule):
-    new_rule_name = new_rule.name
-    new_rule_category = new_rule.category
-    create_rule(new_rule_category)
+def create_new_rule():
+    new_rule_name = request.json['name']
+    new_rule_category = request.json['category']
+    new_rule_description = request.json['description']
+
+    create_rule(rule_details={'rule_name': new_rule_name, 'rule_category': new_rule_category, 'rule_description': new_rule_description})
 
     rule_from_database = find_rule_by_rule_name(new_rule_name)
     if rule_from_database is not None:
         return jsonify(
-            "{\"ruleName\":\"" + rule_from_database.name + "\", \"category\":\"" + rule_from_database.category + "\"}")
+            "{\"ruleName\":\"" + rule_from_database.name + "\", \
+              \"category\":\"" + rule_from_database.category + "\", \
+              \"description\":\""+ rule_from_database.description +"\"}")
 
     return None
 
@@ -128,7 +137,8 @@ def create_file():
 
 @app.route(rule_prefix_url + 'updateHistory', methods=['POST'])
 def update_history():
-    inference_engine: InferenceEngine = session.__getattribute__('inferenceEngine')
+    nadia_rule_name = request.json['ruleName']
+    inference_engine: InferenceEngine = session.__getattribute__(f'inferenceEngine-{nadia_rule_name}')
     working_memory: dict = inference_engine.get_assessment_state().get_working_memory()
 
     rule_name = request.json['ruleName']
@@ -238,7 +248,8 @@ def update_history():
 
 @app.route(inference_prefix_url + 'viewSummary')
 def view_summary():
-    inference_engine: InferenceEngine = session.__getattribute__('inferenceEngine')
+    nadia_rule_name = request.args.get('ruleName')
+    inference_engine: InferenceEngine = session.__getattribute__(f'inferenceEngine-{nadia_rule_name}')
     temp_summary_list = list()
     temp_assessment_state = inference_engine.get_assessment_state()
     temp_working_memory = temp_assessment_state.get_working_memory()
@@ -271,8 +282,9 @@ def view_summary():
 # TODO: this API still needs further work
 @app.route(inference_prefix_url + 'editAnswer', methods=['POST'])
 def edit_answer(question: json):
-    inference_engine: InferenceEngine = session.get('inferenceEngine')
-    assessment: Assessment = session.get('assessment')
+    nadia_rule_name = request.json['ruleName']
+    inference_engine: InferenceEngine = session.__getattribute__(f'inferenceEngine-{nadia_rule_name}')
+    assessment: Assessment = session.__getattribute__(f'assessment-{nadia_rule_name}')
 
     question_name = question['question']
     inference_engine.edit_answer(question_name)
@@ -303,8 +315,9 @@ def edit_answer(question: json):
 
 @app.route(inference_prefix_url + 'feedAnswer', methods=['POST'])
 def feed_answer():
-    inference_engine: InferenceEngine = session.__getattribute__('inferenceEngine')
-    assessment: Assessment = session.__getattribute__('assessment')
+    nadia_rule_name = request.json['ruleName']
+    inference_engine: InferenceEngine = session.__getattribute__('inferenceEngine-'+nadia_rule_name)
+    assessment: Assessment = session.__getattribute__('assessment-'+nadia_rule_name)
 
     question_name = request.json['question']
     answer_entry = request.json['answer']
@@ -335,20 +348,21 @@ def feed_answer():
         object_node['goalRuleType'] = str(
             inference_engine.find_type_of_element_to_be_asked(assessment.get_goal_node()).get(
                 goal_node_name).value).lower()
-
+    logging.info(f'return node: {object_node}')
     return object_node
 
 
 @app.route(inference_prefix_url + 'getNextQuestion')
 def get_next_question():
     nadia_rule_name = request.args.get('targetRuleName')
-    # nadia_rule_name = request.args.get('ruleName')
-    inference_engine: InferenceEngine = session.__getattribute__('inferenceEngine')
+    inference_engine: InferenceEngine = session.__getattribute__(f'inferenceEngine-{nadia_rule_name}')
+
     if inference_engine is None or inference_engine.get_node_set().get_node_set_name() != nadia_rule_name:
         set_inference_engine()
 
-    inference_engine: InferenceEngine = session.__getattribute__('inferenceEngine')
-    assessment: Assessment = session.__getattribute__('assessment')
+    inference_engine: InferenceEngine = session.__getattribute__(f'inferenceEngine-{nadia_rule_name}')
+    assessment: Assessment = session.__getattribute__(f'assessment-{nadia_rule_name}')
+
     next_question_node = inference_engine.get_next_question(assessment)
     if assessment.get_node_to_be_asked().get_line_type() == LineType.ITERATE:
         assessment.set_aux_node_to_be_asked(next_question_node)
@@ -370,22 +384,26 @@ def get_next_question():
 def set_inference_engine():
     nadia_rule_name = request.args.get('ruleName')
     rule_text: str = str(find_rule_text_by_rule_name(nadia_rule_name).files, 'utf-8')
+
     rule_set_reader = RuleSetReader()
+    rule_set_reader.create()
+
     rule_set_parser = RuleSetParser()
+    rule_set_parser.create()
     rule_set_reader.set_file_with_text(rule_text)
     rule_set_scanner = RuleSetScanner(rule_set_reader, rule_set_parser)
     rule_set_scanner.scan_rule_set()
     rule_set_scanner.establish_node_set()
     inference_engine = InferenceEngine(rule_set_parser.get_node_set())
 
-    # inference_engine.set_node_set(rule_set_parser.get_node_set())
     inference_engine.get_node_set().set_node_set_name(nadia_rule_name)
     assessment = Assessment(rule_set_parser.get_node_set(),
                             rule_set_parser.get_node_set().get_sorted_node_list()[0].get_node_name())
     inference_engine.set_assessment(assessment)
 
-    session.__setattr__('inferenceEngine', inference_engine)
-    session.__setattr__('assessment', assessment)
+    session.__setattr__('inferenceEngine-'+nadia_rule_name, inference_engine)
+    session.__setattr__('assessment-'+nadia_rule_name, assessment)
+    
     object_node = json.loads("{}")
     object_node['InferenceEngine'] = 'created'
 
@@ -396,8 +414,12 @@ def set_inference_engine():
 def set_machine_learning_inference_engine():
     nadia_rule_name = request.args.get('ruleName')
     rule_text: str = str(find_rule_text_by_rule_name(nadia_rule_name).files, 'utf-8')
+
     rule_set_reader = RuleSetReader()
+    rule_set_reader.create()
+
     rule_set_parser = RuleSetParser()
+    rule_set_parser.create()
 
     rule_set_reader.set_file_with_text(rule_text)
     rule_set_scanner = RuleSetScanner(rule_set_reader, rule_set_parser)
@@ -421,9 +443,9 @@ def set_machine_learning_inference_engine():
     assessment = Assessment(rule_set_parser.get_node_set(),
                             rule_set_parser.get_node_set().get_sorted_node_list()[0].get_node_name())
     inference_engine.set_assessment(assessment)
-
-    session.__setattr__('inferenceEngine', inference_engine)
-    session.__setattr__('assessment', assessment)
+    
+    session.__setattr__(f'inferenceEngine-{nadia_rule_name, inference_engine}')
+    session.__setattr__(f'assessment-{nadia_rule_name, assessment}')
 
     object_node = json.loads("{}")
     object_node['InferenceEngine'] = 'created'

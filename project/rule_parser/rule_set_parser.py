@@ -1,7 +1,6 @@
+import re
 from abc import ABC
 from datetime import *
-import re
-
 from project.constants import DependencyTypeStringMatcher
 from project.nodes import DependencyMatrix
 from project.nodes.iterate_line import IterateLine
@@ -45,11 +44,14 @@ class RuleSetParser(IScanFeeder, ABC):
     # comparison_matcher = r"(^[MLU(Da)]+)(O)([MLUQ(No)(Da)(De)(Ha)(Url)(Id)]*$)"
     # iterate_matcher = r"(^[MLU(No)(Da)]+)(I)([MLU]+$)"
     # warning_matcher = r"WARNING"
-
     __match_types = LineType.get_all_values()
     __node_set = NodeSet()
     __dependency_list = []
 
+    def create(self):
+        self.__match_types = LineType.get_all_values()
+        self.__node_set = NodeSet()
+        self.__dependency_list = []
     def handle_parent(self, parent_text, line_number) -> None:
         node_data = None
 

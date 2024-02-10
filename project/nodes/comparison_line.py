@@ -1,17 +1,13 @@
 import json
-
 from project.loggers import Logger
 from project.nodes.node import Node
 from project.tokens import Token
 from project.nodes.line_type import LineType
-from project.fact_values import FactValueType
-from project.fact_values import FactValue
+from project.fact_values import FactValue, FactValueType
 from datetime import datetime
 
 logging: Logger = Logger.get_logger(__name__)
 
-def __repr__(self):
-    return json.dumps(self.__dict__)
 
 class ComparisonLine(Node):
     __operatorString = None
@@ -20,6 +16,10 @@ class ComparisonLine(Node):
 
     def __init__(self, child_text: str, tokens: Token):
         super().__init__(child_text, tokens)
+        self._lineType = LineType.COMPARISON
+    
+    def __repr__(self):
+        return json.dumps(self.__dict__)
 
     def initialisation(self, child_text: str, tokens: Token):
         logging.info("Generating Comparison Line with : " + str(child_text))

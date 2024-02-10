@@ -9,12 +9,12 @@
 # exclusiveList : list(string)
 #     it stores all irrelevant rule as assessment goes by,
 #     and the parameter String represents rule.getName().
-from project.fact_values import FactValue
-from project.fact_values import FactValueType
+from project.fact_values import FactValue, FactValueType
 from project.loggers import Logger
 from project.nodes import LineType
 from project.nodes.node import Node
 from project.nodes.node_set import NodeSet
+import json
 
 logging: Logger = Logger.get_logger(__name__)
 
@@ -40,6 +40,7 @@ class AssessmentState:
 
         self.__mandatoryList = []
         logging.info("AssessmentState is generated")
+
 
     # this method is to get workingMemory
     def get_working_memory(self) -> dict:
@@ -160,3 +161,7 @@ class AssessmentState:
         if len(name) == 0:
             logging.info("name is None")
         self.__workingMemory.pop(name)
+
+    def __repr__(self):
+        return json.dumps(self.__dict__)
+

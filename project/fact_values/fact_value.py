@@ -1,9 +1,7 @@
-import json
 import re
-from datetime import datetime
 
-from project.tokens import Tokenizer
-from project.tokens import TokenStringDictionary
+from datetime import datetime
+from project.tokens import Tokenizer, TokenStringDictionary
 from project.fact_values.fact_value_type import FactValueType
 from project.loggers import Logger
 
@@ -63,10 +61,32 @@ class FactValue:
         elif value is None and value_type is not None:
             self.__value_type = value_type
 
-        logging.info("Initialising FactValue with " + str(value) + ", type: " + self.__value_type.value)
+        if (value is not None) and (value_type is not None):
+            logging.info("Initialising FactValue with " + str(value) + ", type: " + self.__value_type.value)
 
-    def __repr__(self):
-        return json.dumps(self.__dict__)
+    # def __repr__(self):
+    #     return json.dumps(self.__dict__)
+    
+    # def __getstate__(self):
+    #     state = dict()  # Create a copy of the instance's attribute dictionary
+
+    #     # Serialize specific attributes requiring special treatment
+    #     state["__value_type"] = self.__value_type.__getstate__() if self.__value_type != None else None
+    #     state["__value"] = self.__value
+    #     state["__default_value"] = self.__default_value
+    #     return state
+
+    # def __setstate__(self, state):
+    #     # Deserialize specific attributes using the serialized data
+    #     self.__value_type = state["__value_type"]
+    #     self.__value = state["__value"]
+    #     self.__default_value = state["__default_value"]
+
+    #     # Remove the temporary keys from the instance
+    #     del state["__value_type"]
+    #     del state["__value"]
+    #     del state["__default_value"]
+    #     # Remove other temporary keys added during serialization
 
     def get_value(self) -> any:
         return self.__value
@@ -79,3 +99,14 @@ class FactValue:
 
     def get_default_value(self) -> any:
         return self.__default_value
+    
+    # def serialize(self):
+    #     # Serialize the object's state to bytes using pickle
+    #     return pickle.dumps(self.__dict__)
+
+    # @classmethod
+    # def deserialize(cls, serialized):
+    #     # Deserialize the serialized data and create an instance of MyClass
+    #     obj = cls.__new__(cls)  # Create a new instance of the class
+    #     obj.__dict__.update(pickle.loads(serialized))  # Update object's state with deserialized data
+    #     return obj

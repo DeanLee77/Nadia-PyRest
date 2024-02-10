@@ -1,21 +1,12 @@
 import json
-
-from project.inference.assessment import Assessment
-from project.inference import AssessmentState
-from project.inference import InferenceEngine
-from project.inference import TopologicalSort
+from project.inference import AssessmentState, Assessment, InferenceEngine, TopologicalSort
 from project.loggers import Logger
 from project.nodes.node import Node
 from project.tokens import Token
 from project.nodes.node_set import NodeSet
-from project.nodes import DependencyMatrix
-from project.nodes import LineType
-from project.nodes import ValueConclusionLine
-from project.nodes import ComparisonLine
-from project.nodes import ExprConclusionLine
-from project.nodes import Dependency
-from project.fact_values import FactValue
-from project.fact_values import FactValueType
+from project.nodes import ValueConclusionLine, ComparisonLine, ExprConclusionLine, Dependency, LineType, DependencyMatrix
+from project.fact_values import FactValue, FactValueType
+
 
 logging: Logger = Logger.get_logger(__name__)
 
@@ -29,6 +20,7 @@ class IterateLine(Node):
 
     def __init__(self, parent_text: str, tokens: Token):
         super().__init__(parent_text, tokens)
+        self._lineType = LineType.ITERATE
 
     def __repr__(self):
         return json.dumps(self.__dict__)

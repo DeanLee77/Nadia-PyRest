@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 class MetaType(Enum):
     LINE = 'LINE'
     FIXED = 'FIXED'
@@ -9,6 +8,7 @@ class MetaType(Enum):
     GOAL = 'GOAL'
     CLICK_LINK = 'CLICK_LINK'
     DOC = 'DOC'
+    IMPORT = 'IMPORT'
 
     @staticmethod
     def get_all_meta_type():

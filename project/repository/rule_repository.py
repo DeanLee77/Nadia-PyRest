@@ -1,8 +1,4 @@
 import json
-
-from flask import jsonify
-from flask import make_response
-
 from project.domain.models.models import Rule, File, History
 from project import db
 
@@ -32,8 +28,8 @@ def update_rule_name_and_category(old_rule_name: str, new_rule_name: str, new_ca
     db.session.commit()
 
 
-def create_rule(new_name: str, new_category: str):
-    rule = Rule(new_name, new_category)
+def create_rule(rule_details={}):
+    rule = Rule(**rule_details)
     db.session.add(rule)
     db.session.commit()
 
@@ -48,21 +44,3 @@ def create_rule_history(rule_id: int, history: json):
     history = History(rule_id, history)
     db.session.add(history)
     db.session.commit()
-
-# class RuleRepository:
-# @staticmethod
-
-# @staticmethod
-
-# @staticmethod
-
-# @staticmethod
-
-# @staticmethod
-
-# @staticmethod
-
-# @staticmethod
-
-# @staticmethod
-# pass

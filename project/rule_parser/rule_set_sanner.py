@@ -1,6 +1,5 @@
 import re
 from collections import deque
-
 from project.inference import TopologicalSort
 from project.nodes.node_set import NodeSet
 from project.rule_parser import ILineReader
@@ -8,10 +7,12 @@ from project.rule_parser import IScanFeeder
 
 
 class RuleSetScanner:
-    __scan_feeder: IScanFeeder = None
-    __line_reader: ILineReader = None
-    __use_historical_data: bool = False
-    __record_dict_of_nodes: dict = {}
+
+    def __int__(self):
+        self.__scan_feeder: IScanFeeder = None
+        self.__line_reader: ILineReader = None
+        self.__use_historical_data: bool = False
+        self.__record_dict_of_nodes: dict = {}
 
     def __init__(self, reader: ILineReader, feeder: IScanFeeder):
         self.__scan_feeder = feeder
@@ -28,6 +29,7 @@ class RuleSetScanner:
         still_lines = True
         while still_lines:
             line = self.__line_reader.get_next_line()
+
             if line == "":
                 still_lines = False
                 break

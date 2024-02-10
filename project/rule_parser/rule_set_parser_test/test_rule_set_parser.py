@@ -150,7 +150,7 @@ def test_handle_child(rule_set_parser_test):
     child_item_list = list(fixed_item.get_value())
     has_two_items = len(child_item_list) == 2
     has_all_items = True
-    print("*****************: ", node_set.get_fact_dictionary())
+
     if FactValue(child_item_list[0]).get_value() != "someone" and \
         FactValue(child_item_list[1]).get_value() != "somebody":
         has_all_items = False

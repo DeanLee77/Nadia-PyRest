@@ -1,8 +1,7 @@
 import json
-
 from project.loggers import Logger
-from project.nodes.dependency_matrix import DependencyMatrix
 from project.nodes.node import Node
+from . import DependencyMatrix
 
 logging: Logger = Logger.get_logger(__name__)
 
@@ -18,14 +17,14 @@ class NodeSet:
     __dependencyMatrix: DependencyMatrix
 
     def __init__(self):
-        self.__nodeSetName = None
+        self.__nodeSetName = ''
         self.__inputDictionary = dict()
         self.__factDictionary = dict()
         self.__nodeDictionary = dict()
         self.__nodeIdDictionary = dict()
         self.__sortedNodeList = []
         self.__defaultGoalNode = None
-        self.__dependencyMatrix: DependencyMatrix = None
+        self.__dependencyMatrix: DependencyMatrix = DependencyMatrix([[]])
         logging.info("NodeSet is generated")
 
     def __repr__(self):
