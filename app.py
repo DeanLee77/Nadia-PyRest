@@ -444,8 +444,8 @@ def set_machine_learning_inference_engine():
                             rule_set_parser.get_node_set().get_sorted_node_list()[0].get_node_name())
     inference_engine.set_assessment(assessment)
     
-    session.__setattr__(f'inferenceEngine-{nadia_rule_name, inference_engine}')
-    session.__setattr__(f'assessment-{nadia_rule_name, assessment}')
+    session.__setattr__(f'inferenceEngine-{nadia_rule_name}', inference_engine)
+    session.__setattr__(f'assessment-{nadia_rule_name}', assessment)
 
     object_node = json.loads("{}")
     object_node['InferenceEngine'] = 'created'

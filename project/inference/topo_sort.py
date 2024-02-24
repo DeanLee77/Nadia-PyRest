@@ -258,16 +258,16 @@ class TopologicalSort:
             dependency_matrix_as_list = list(dependency_matrix[node_id])
             size_of_dependency_matrix_as_list = len(dependency_matrix_as_list)
             or_out_dependency = list(
-                filter(lambda index: (dependency_matrix_as_list[index] & or_dependency_type) == or_dependency_type,
-                       list([0 for x in range(size_of_dependency_matrix_as_list)])))
+                filter(lambda index: dependency_matrix_as_list[index] > 0 and (dependency_matrix_as_list[index] & or_dependency_type) == or_dependency_type,
+                       list([x for x in range(size_of_dependency_matrix_as_list)])))
             and_out_dependency = list(
-                filter(lambda index: (dependency_matrix_as_list[index] & and_dependency_type) == and_dependency_type,
-                       list([0 for x in range(size_of_dependency_matrix_as_list)])))
+                filter(lambda index: dependency_matrix_as_list[index] > 0 and (dependency_matrix_as_list[index] & and_dependency_type) == and_dependency_type,
+                       list([x for x in range(size_of_dependency_matrix_as_list)])))
 
             if (len(or_out_dependency) != 0) or (len(and_out_dependency) != 0):
                 child_rule_list = list()
-                for item in list(filter(lambda child_index: dependency_matrix_as_list[child_index] != 0,
-                                        list([0 for x in range(size_of_dependency_matrix_as_list)]))):
+                for item in list(filter(lambda child_index: dependency_matrix_as_list[child_index] > 0 and dependency_matrix_as_list[child_index] != 0,
+                                        list([x for x in range(size_of_dependency_matrix_as_list)]))):
                     child_rule_list.append(node_dictionary[node_id_dictionary[item]])
 
                 if (len(or_out_dependency) != 0) and (len(and_out_dependency) == 0):
@@ -289,25 +289,25 @@ class TopologicalSort:
                                                                 node_id_dictionary, visited_node_list,
                                                                 dependency_matrix)
 
-                        else:
-                            if (len(or_out_dependency) == 0) and (len(and_out_dependency) != 0):
-                                # the reason for selecting an option having more number of 'yes' is as follows
-                                # if it is 'AND' rule and it is 'FALSE' then it is the shortest path, and ignore
-                                # other 'AND' rules. Therefore, looking for more likely 'FALSE' rule would be the
-                                # shortest one rather than looking for more likely 'TRUE' rule in terms of
-                                # processing time
+                else:
+                    if (len(or_out_dependency) == 0) and (len(and_out_dependency) != 0):
+                        # the reason for selecting an option having more number of 'yes' is as follows
+                        # if it is 'AND' rule and it is 'FALSE' then it is the shortest path, and ignore
+                        # other 'AND' rules. Therefore, looking for more likely 'FALSE' rule would be the
+                        # shortest one rather than looking for more likely 'TRUE' rule in terms of
+                        # processing time
 
-                                while len(child_rule_list) != 0:
-                                    the_most_negative = TopologicalSort.find_the_most_negative(child_rule_list,
-                                                                                               record_dictionary_of_nodes,
-                                                                                               dependency_matrix_as_list)
+                        while len(child_rule_list) != 0:
+                            the_most_negative = TopologicalSort.find_the_most_negative(child_rule_list,
+                                                                                        record_dictionary_of_nodes,
+                                                                                        dependency_matrix_as_list)
 
-                                    if the_most_negative not in visited_node_list:
-                                        visited_node_list.append(the_most_negative)
-                                        sorted_list = TopologicalSort.visit(the_most_negative, sorted_list,
-                                                                            record_dictionary_of_nodes, node_dictionary,
-                                                                            node_id_dictionary, visited_node_list,
-                                                                            dependency_matrix)
+                            if the_most_negative not in visited_node_list:
+                                visited_node_list.append(the_most_negative)
+                                sorted_list = TopologicalSort.visit(the_most_negative, sorted_list,
+                                                                    record_dictionary_of_nodes, node_dictionary,
+                                                                    node_id_dictionary, visited_node_list,
+                                                                    dependency_matrix)
         return sorted_list
 
     @staticmethod
@@ -331,17 +331,17 @@ class TopologicalSort:
                         (DependencyType.get_not() | DependencyType.get_known()):
                     prefix = "not known"
 
-                record_of_node = record_dictionary_of_nodes[prefix + node.get_node_name()]
+                record_of_node = record_dictionary_of_nodes.get(prefix + node.get_node_name())
             else:
-                record_of_node = record_dictionary_of_nodes[node.get_node_name()];
+                record_of_node = record_dictionary_of_nodes.get(node.get_node_name())
 
             if record_of_node is not None:
-                yes_count = record_of_node.get_true_count()
+                yes_count = record_of_node['true']
             else:
                 yes_count = 0
 
             if record_of_node is not None:
-                no_count = record_of_node.get_false_count()
+                no_count = record_of_node['false']
             else:
                 no_count = 0
 
@@ -383,17 +383,17 @@ class TopologicalSort:
                         (DependencyType.get_not() | DependencyType.get_known()):
                     prefix = "not known"
 
-                record_of_node = record_dictionary_of_nodes[prefix + node.get_node_name()]
+                record_of_node = record_dictionary_of_nodes.get(prefix + node.get_node_name())
             else:
-                record_of_node = record_dictionary_of_nodes[node.get_node_name()];
+                record_of_node = record_dictionary_of_nodes.get(node.get_node_name())
 
             if record_of_node is not None:
-                yes_count = record_of_node.get_true_count()
+                yes_count = int(record_of_node['true'])
             else:
                 yes_count = 0
 
             if record_of_node is not None:
-                no_count = record_of_node.get_false_count()
+                no_count = int(record_of_node['false'])
             else:
                 no_count = 0
 
@@ -416,6 +416,7 @@ class TopologicalSort:
         for node_index in range(len(child_node_list)):
             if child_node_list[node_index].get_node_name() == the_most_negative.get_node_name():
                 child_node_list.pop(node_index)
+                break
 
         return the_most_negative
 

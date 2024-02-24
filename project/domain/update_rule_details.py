@@ -1,4 +1,4 @@
-class UpdateRuleDetails:
+class UpdateRuleDescription:
     __newRuleName: str = ""
     __oldRuleName: str = ""
     __newRuleCategory: str = ""
